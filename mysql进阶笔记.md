@@ -1,3 +1,4 @@
+## 随笔
 any 任意一个  
 
 select * from A where id in(1,2,3)  等同于：
