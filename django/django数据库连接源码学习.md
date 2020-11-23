@@ -9,41 +9,41 @@ connections = ConnectionHandler()  #  一个可选的数据库定义字典
 ```python
 class ConnectionHandler:
 	def __init__(self, databases=None):
-		"""一个可选的数据库定义字典"""
-		self._databases = databases # 数据库配置
-		self._connections = local() # 从当前线程变量获取所有数据库连接对象
+	    """一个可选的数据库定义字典"""
+	    self._databases = databases # 数据库配置
+	    self._connections = local() # 从当前线程变量获取所有数据库连接对象
 		
 	def databases(self):
-		"""获取所有数据库配置字典"""
-		# 如果databases不传，则从配置文件取
+	    """获取所有数据库配置字典"""
+	    # 如果databases不传，则从配置文件取
 	
 	def ensure_defaults(self, alias):
-		"""将没有提供任何设置的给定连接的默认值放入设置字典中"""
-		# 对于已设置好的连接，加入一些默认配置参数：诸如，AUTOCOMMIT，ENGINE，CONN_MAX_AGE，OPTIONS
+	    """将没有提供任何设置的给定连接的默认值放入设置字典中"""
+	    # 对于已设置好的连接，加入一些默认配置参数：诸如，AUTOCOMMIT，ENGINE，CONN_MAX_AGE，OPTIONS
 		
 	def __getitem__(self, alias):
-     	"""获取指定别名的数据库连接对象
-        当使用connections['alias']时，就会调用该方法获取连接
-        """
-        # 从当前线程local中取该别名的连接对象
-        if hasattr(self._connections, alias):
+     	    """获取指定别名的数据库连接对象
+            当使用connections['alias']时，就会调用该方法获取连接
+            """
+            # 从当前线程local中取该别名的连接对象
+            if hasattr(self._connections, alias):
         	return getattr(self._connections, alias)
-        ......
-        # 使用配置信息新建数据库连接
-        db = self.databases[alias]
-        backend = load_backend(db['ENGINE']) # 使用指定数据库后端
-        conn = backend.DatabaseWrapper(db, alias) # 新建连接对象（DatabaseWrapper实例）
-        setattr(self._connections, alias, conn) # 保存到线程变量中
-        return conn
+            ......
+            # 使用配置信息新建数据库连接
+            db = self.databases[alias]
+            backend = load_backend(db['ENGINE']) # 使用指定数据库后端
+            conn = backend.DatabaseWrapper(db, alias) # 新建连接对象（DatabaseWrapper实例）
+            setattr(self._connections, alias, conn) # 保存到线程变量中
+            return conn
     
 	def close_all(self):
-        """关闭当前线程中的所有数据库连接"""
-        for alias in self:
-            try:
-                connection = getattr(self._connections, alias)
-            except AttributeError:
-                continue
-            connection.close()
+            """关闭当前线程中的所有数据库连接"""
+            for alias in self:
+                try:
+                    connection = getattr(self._connections, alias)
+                except AttributeError:
+                    continue
+                connection.close()
     
 ```
 
@@ -53,7 +53,7 @@ class ConnectionHandler:
 
 `django.db.models.base` 中的Model类
 
-```
+```python
 class Model(metaclass=ModelBase):
 	@classmethod
     def _check_long_column_names(cls)：
@@ -218,6 +218,7 @@ class BaseDatabaseWrapper:
 
 - all()  获取所有连接对象
 
+  
 
 
 # django的数据库行为
@@ -232,6 +233,7 @@ class BaseDatabaseWrapper:
 **注意**：除非程序中显示执行了connect方法或调用了connect方法的函数；比如，提前创建连接池.
 
 
+  
 
 ### 2.何时会调用connect方法，连接数据库？
 
@@ -256,6 +258,7 @@ class BaseDatabaseWrapper:
   close_at = None if max_age is None else time.time() + max_age
   ```
 
+  
 
 ### 3.何时调用close方法，关闭数据库连接？
 
@@ -269,6 +272,7 @@ if self.close_at is not None and time.time() >= self.close_at:
 ```
 
 
+  
 
 ### 4. django请求开始和请求完成的数据库行为
 
