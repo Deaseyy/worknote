@@ -176,13 +176,19 @@ class BaseDatabaseWrapper:
         """关闭与数据库的连接。"""
         # ......
         try:
-            self._close()
+            self._close()  # 关闭底层连接
         finally:
             if self.in_atomic_block:
                 self.closed_in_transaction = True
                 self.needs_rollback = True
             else:
-                self.connection = None
+                self.connection = None  # connection属性置为None
+    
+    def _close(self):
+        """关闭底层连接"""
+        if self.connection is not None:
+            with self.wrap_database_errors:
+                return self.connection.close()
     
     def close_if_unusable_or_obsolete(self):
         """如果出现不可恢复的错误，请关闭当前连接; 或者它是否超过了它的最大寿命。"""
