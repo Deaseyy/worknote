@@ -23,6 +23,7 @@ class ConnectionHandler:
 		
 	def __getitem__(self, alias):
      	    """获取指定别名的数据库连接对象
+	    （连接对象是保存在local对象上(当前线程)的，其他线程无法访问）
             当使用connections['alias']时，就会调用该方法获取连接
             """
             # 从当前线程local中取该别名的连接对象
@@ -236,7 +237,8 @@ class BaseDatabaseWrapper:
 - 但会给默认'default'数据库，建立一个底层数据库连接（真正连接到数据库）
   - 测试时看到，它调用了DatabaseWrapper中的connect方法，进而调用MYSQLdb的connect方法建立连接。
 
-**注意**：除非程序中显示执行了connect方法或调用了connect方法的函数；比如，提前创建连接池.
+**原理**：  
+**django进程(主线程)启动，调用connections['别名']，从local对象(当前线程)中获取连接对象，但当前线程上还没有该别名的连接对象，就会新建连接对象。**  
 
 
   
