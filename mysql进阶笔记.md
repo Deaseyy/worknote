@@ -1,21 +1,57 @@
-## 随笔
-any 任意一个  
+# 常用操作
 
-select * from A where id in(1,2,3)  等同于：
+## 常用sql
 
+### 1.根据某字段删除所有重复行，只保留一行（取id最大那行）
+
+```mysql
+delete from fatie where id not in(select t.id1 from ( (select max(a.id) id1 from fatie a group by a.name)as t))
 ```
- select * from A where id=any(1,2,3)
+
+### 2.一行查询为多行
+
+```mysql
+select SUBSTRING_INDEX(SUBSTRING_INDEX(lower_Veneer,'/',help_topic_id+1),'/',-1) AS lower_Veneer
+from t_cboardproductinfo a 
+join mysql.help_topic  b ON b.help_topic_id < ( length( a.lower_Veneer ) - length( REPLACE ( a.lower_Veneer, '/', '') ) + 1 ) 
+where lower_Veneer is not null and lower_Veneer!=''
 ```
 
-all  所有
+### 3.插入数据时避开重复数据
 
-select * from A where salary>all(1000,2000,3000) 相当于大于最大值
+三种方法如下：
 
-select * from A where salary <> all(1000,2000,3000)
+使用以下方法的前提是表中有一个 PRIMARY KEY 或 UNIQUE 约束/索引，否则，使用以上三个语句没有特殊意义，与使用单纯的 INSERT INTO 效果相同。
 
+```mysql
+A、insert ignore into(若没有则插入，若存在则忽略)
+作用：
+insert ignore 会根据主键或者唯一键判断，忽略数据库中已经存在的数据
+若数据库没有该条数据，就插入为新的数据，跟普通的 insert into 一样
+若数据库有该条数据，就忽略这条插入语句，不执行插入操作。
 
+B、insert into ... on duplicate key update(若没有则正常插入，若存在则更新)
+作用：
+在 insert into 语句末尾指定 on duplicate key update，会根据主键或者唯一键判断：
+若数据库有该条数据，则直接更新原数据，相当于 update
+若数据库没有该条数据，则插入为新的数据，跟普通的 insert into 一样。
 
-## qqq
+C、replace into(若没有则正常插入，若存在则先删除后插入)
+作用：
+replace into 会根据主键或者唯一键判断：
+若表中已存在该数据，则先删除此行数据，然后插入新的数据，相当于 delete + insert
+可能会丢失数据、主从服务器的 AUTO_INCREMENT 不一致。
+若表中不存在该数据，则直接插入新数据，跟普通的 insert into 一样。
+```
+
+### 4.MySQL 将查询出来的一列数据拼装成一个字符串
+
+```mysql
+select GROUP_CONCAT(字段a) from tb   // 默认逗号分割
+select GROUP_CONCAT(字段a separator ';') from tb
+```
+
+### 5.in 子查询优化 为 join连接查询
 
 ```mysql
 select * from table1 where id in ( select uid from table2 );
@@ -23,11 +59,30 @@ select * from table1 where id in ( select uid from table2 );
 select table1.* from table1 inner join table2 on table1.id=table2.uid;
 ```
 
+### 6. in 子查询 和 exists 子查询
 
+```python
+# in
+select * from t_key_personnel where job_num in (select key_person from t_platform_acquaintances)
+# exists
+select * from t_key_personnel t1 where exists (select id from t_platform_acquaintances t2 where t1.job_num=t2.key_person)
+```
 
-# sql技巧
+**exists 执行顺序如下：**
 
-### 1.利用GROUP BY 的WITH ROLLUP 子句做统计
+```
+1.首先执行一次外部查询
+2.对于外部查询中的每一行分别执行一次子查询，而且每次执行子查询时都会引用外部查询中当前行的值。
+3.使用子查询的结果来确定外部查询的结果集。
+如果外部查询返回100行，SQL   就将执行101次查询，一次执行外部查询，然后为外部查询返回的每一行执行一次子查询。
+从执行情况来看：外表的大小控制着整条sql的效率，外表越小，执行次数越少，最终查询结果就越快
+```
+
+**EXISTS与IN的使用效率：**
+
+**in适用外表大而内表小的情况；EXISTS适用外表小而内表大的情况**
+
+### 7.利用GROUP BY 的WITH ROLLUP 子句做统计
 
 使用GROUP BY的WITH ROLLUP字句可以检索出更多的分组聚合信息，它不仅仅能像一般的GROUP BY语句那样检索出各组的聚合信息，在根据多个字段分组时，还能检索出每个字段分组的整体聚合信息。
 
@@ -48,8 +103,71 @@ select year, country, product, sum(profit) from sales group by year, country, pr
 | 2005 |       |      | 12039 |
 ```
 
-注意：1、当使用 ROLLUP 时, 不能同时使用ORDER BY 子句进行结果排序。换言之， **ROLLUP**
-**和ORDER BY 是互相排斥的** 2、LIMIT 用在 ROLLUP 后面。
+注意：
+
+- 1、当使用 ROLLUP 时, 不能同时使用ORDER BY 子句进行结果排序。换言之， **ROLLUP和ORDER BY 是互相排斥的** 
+- 2、LIMIT 用在 ROLLUP 后面。
+
+### 8.根据已有表结构创建临时表
+
+```sql
+create TEMPORARY table `t_module_tmp` like `t_module`
+```
+
+
+
+## 常用命令
+
+```mysql
+# 查看表的索引
+show index from tableA；
+# 查看变量
+show variables like '%character%'; # 查看字符集
+# 查询SQL线程
+select * from information_schema.innodb_trx;
+# 杀死线程
+kill trx_mysql_thread_id
+KILL 938943;
+# 查看数据库连接数
+show status like 'Threads%';
+
+-- 锁超时问题
+SELECT * FROM information_schema.INNODB_TRX
+kill 302226;
+
+# 获取当前数据库的所有连接的相关信息
+show processlist
+# 查看死锁的展示信息
+show engine innodb status
+
+
+# 创建索引  -- 此方法只能添加普通索引和唯一索引
+CREATE INDEX index_name ON table_name (column_list)
+CREATE UNIQUE INDEX index_name ON table_name (column_list)
+# 删除索引
+drop index index_name on table_name
+alter table table_name drop index index_name
+# 查看索引
+show index from table
+
+```
+
+### 1. 修改数据库最大连接数
+
+```
+修改方式一：set GLOBAL max_connections=2000;（一次生效方法）
+
+修改方式二：vi /etc/my.cnf  修改配置文件
+[mysqld]
+set-variable=max_connections=250  #加入这些内容
+:wq
+
+/etc/init.d/mysqld restart
+```
+
+
+
+
 
 
 
@@ -70,6 +188,8 @@ select 函数名(参数) 【from table】（需要用到表中字段就加）
 - concat()  拼接字符串
 
 - upper()，lower()
+
+- left(str,2), right(str,3)  从左(或右)边截取指定个数字符串
 
 - substr，substring  截取字符串 （两个意思一样）
 
@@ -117,6 +237,7 @@ select 函数名(参数) 【from table】（需要用到表中字段就加）
 
 - now() 返回当前系统日期+时间
 - curdate()  返回当前系统日期，不包含时间
+  - current_date 变量 返回也一样
 - curtime()  返回当前时间，不包含日期
 - date(now())  获取指定时间的指定的部分(日期，时间，年，月，日，时，分, 秒)
   - time(now()),  year(now()), month()
@@ -130,17 +251,34 @@ select 函数名(参数) 【from table】（需要用到表中字段就加）
 
 - 计算两个日期时间差函数
 
-  - timestampdiff(day, 远的时间，近的时间)
+  - timestampdiff(day, 远的时间，近的时间)      精确到秒
 
     第一个参数可以为week，day，month，year，hour，minute，second
 
-    结果为近的时间 - 远的时间
+    结果为第二个参数（近的时间） - 第一个参数（远的时间）
 
-  - datediff()   比较的DAY天数 
+  - datediff()   只能比较DAY天数  精确到天， 参数顺序和上面相反
 
-    同上
+    ```mysql
+    # 区别
+    ## 比较精确到每一秒，返回第一个参数指定类型的值；
+    ## 相差1天
+    select TIMESTAMPDIFF(DAY, '2018-03-20 23:59:00', '2018-03-22 00:00:00');  
+    ## 相差2天，仅比较日期天数差（精确到天）,返回相差天数
+    SELECT DATEDIFF('2018-03-20 23:59:00', '2018-03-22 00:00:00');  -- -2
+    
+    # 注意：sqlserver中datediff():
+    ## 根据第一个参数（年月日时分秒）求差，精确到第一个参数指定的类型,返回第一个参数指定类型的值；（即指定哪个类型，精确到该类型，返回该类型的差值）
+    SELECT DATEDIFF(day,'2018-03-20 23:59:00', '2018-03-22 00:00:00'); # 相差2天
+    
+    SQLserver：datediff（day,小日期，大日期）
+    # 等同
+    mysql:datediff(大日期，小日期)
+    ```
 
 - to_days()  将日期时间戳转化为为天数
+
+- adddate(now(),5)  返回指定时间上增加多少天后的日期时间 
 
 ### 其他函数
 
@@ -271,7 +409,7 @@ END $$
   ```mysql
   select salary，case
   when salary>20000 then 'A'
-  when salary>15000 thrn 'B'
+  when salary>15000 then 'B'
   when salary>10000 then 'C'
   else 'D'
   end as 工资级别 from employees;
@@ -307,7 +445,9 @@ sum(distinct salary)  去重后求和，其他函数都支持
 
   **效率**：myisam存储引擎下，count(*) 效率最高(myisam中有个内部计数器，直接返回记录个数)；
 
-  innodb存储引擎下，count(\*)和count(1)效率差不多，比count(字段名)高一些(有一个判断不为null的过程)。
+  innodb存储引擎下，count(\*)和count(1)效率差不多，比count(字段名)高一些(**有一个判断不为null的过程**)。
+
+
 
 # 二，增删改查
 
@@ -319,9 +459,7 @@ sql92标准：mysql中仅支持内连接，orecle支持外连接
 
 sql99标准：mysql支持内连接+外连接(左，右)+交叉连接
 
-```
-	不支持全外连接； 连接使用 join on 关键字
-```
+不支持全外连接； 连接使用 join on 关键字
 
 #### 等值连接
 
@@ -333,7 +471,9 @@ select salary from A join B on A.id=B.id （sql99）
 
 #### 非等值连接
 
+```sql
 select salary, level from A, C where salary between C.low_level and C.high_level;  
+```
 
 #### 自连接
 
@@ -455,7 +595,6 @@ SELECT 'bb','MES+生产质量问题2' as '预警类型',sum(CASE product when 'A
 
 ```
 列名可不写，默认为所有字段，顺序与数据库列名一致；
-
 字段个数必须与值的个数保持一致。
 ```
 
@@ -493,7 +632,24 @@ WHERE id IN (1,2,3)
 
 
 
-# 三，
+# 三，锁
+
+### 查询加锁
+
+必须要开启事务查询
+
+```sql
+BEGIN;
+-- 加读锁S（共享锁）
+select * from tt  where id='123' lock in share mode;
+-- 加写锁X（排他锁）
+select * from tt  where id='123' for update;
+COMMIT;
+```
+
+- 查询加锁若用到索引，innodb默认加行锁，否则锁整个表。
+- 行锁时，若查询记录为空，则不会加锁；
+- 表锁时，即使查询记录为空，也会锁表；
 
 
 
@@ -655,6 +811,7 @@ set @用户变量名=值；  或：
 set @用户变量名:=;  或：
 
 select @用户变量名:=值；
+
 ```
 
 2.赋值（更新用户变量的值）
@@ -667,6 +824,7 @@ select @用户变量名:=值；
 	set @用户变量名:=;  或：
 
 	select @用户变量名:=值；
+
 ```
 
 方式二：通过select into
@@ -706,7 +864,11 @@ select 变量名；
 ### 创建语法
 
 ```mysql
-
+delimiter $
+create procedure myp1()
+begin
+	语句；
+end $
 ```
 
 - 1.参数列表包含三部分： 参数模式 参数名 参数类型
@@ -849,90 +1011,19 @@ END $$
 
 
 
-# 十，SQL优化
+# 九，其他知识点
 
-## 10.1 优化SQL 语句的一般步骤
+### any 和 all
 
-#### 1.通过show status 命令了解各种sql的执行频率
+```sql
+-- any 任意一个  
+select * from A where id in(1,2,3)  等同于：
+select * from A where id=any(1,2,3)
 
-```mysql
-# 查看global级（自数据库上次启动至今），session级（当前连接）
-show [session|global] status；  # 获取服务器状态信息
-show status like 'Com_%'; # Com_xxx表示查询每个xxx语句执行的次数
-```
-
-- Com_select：执行select 操作的次数，一次查询只累加1。
-- Com_insert：执行INSERT 操作的次数，对于批量插入的INSERT 操作，只累加一次。
-- Com_update：执行UPDATE 操作的次数。
-- Com_delete：执行DELETE 操作的次数。
-
-#### 2.定位执行效率较低的SQL语句
-
-#### 3.通过explain分析低效SQL的执行计划
-
-每个列的简单解释如下：
-
-- select_type：表示SELECT 的类型，常见的取值有SIMPLE（简单表，即不使用表连接
-  或者子查询）、PRIMARY（主查询，即外层的查询）、UNION（UNION 中的第二个或
-  者后面的查询语句）、SUBQUERY（子查询中的第一个SELECT）等。
-- table：输出结果集的表。
-- type：表示表的连接类型，性能由好到差的连接类型为system（表中仅有一行，即
-  常量表）、const（单表中最多有一个匹配行，例如primary key 或者unique index）、
-  eq_ref（对于前面的每一行，在此表中只查询一条记录，简单来说，就是多表连接
-  中使用primary key或者unique index）、re（f 与eq_ref类似，区别在于不是使用primary
-  key 或者unique index，而是使用普通的索引）、ref_or_null（与ref 类似，区别在于
-  条件中包含对NULL 的查询）、index_merge(索引合并优化)、unique_subquery（in
-  的后面是一个查询主键字段的子查询）、index_subquery（与unique_subquery 类似，
-  区别在于in 的后面是查询非唯一索引字段的子查询）、range（单表中的范围查询）、
-  index（对于前面的每一行，都通过查询索引来得到数据）、all（对于前面的每一行，都通过全表扫描来得到数据）。
-- possible_keys：表示查询时，可能使用的索引。
-- key：表示实际使用的索引。
-- key_len：索引字段的长度。
-- rows：扫描行的数量。
-- Extra：执行情况的说明和描述。
-
-#### 4.确定问题并采取相应的优化措施
-
-	比如发现type值为all，说明是对表的全表扫描导致效率不理想，对筛选字段建立索引:
-
-```
-create index ind_sales2_year on sales2(year);
-
-```
-
-可以发现建立索引后需要扫描的行数（rows）明显减少（从1000 行减少到1 行）;
-
-
-
-
-
-
-
-
-
-##### 1.尽量不使用not in 和 <> ，它们 都不会使用索引
-
-not in 转化为 left join
-
-```mysql
-select * from A where A.id not in (select id from B);
-优化为：
-select * from A left join B on A.id=B.id where B.id is null；
+-- all  所有
+select * from A where salary>all(1000,2000,3000) 相当于大于最大值
+select * from A where salary <> all(1000,2000,3000)
 ```
 
 
-
-
-
-# 二十，其他问题
-
-**1.windows MySQL的cmd黑屏终端显示中文乱码问题**
-
-Windows cmd写入显示的编码是GBK，与mysql配置不一样，解决方法：
-
-```mysql
-mysql命令行下输入：
-set character_set_client=gbk;
-set character_set_results=gbk;
-```
 
