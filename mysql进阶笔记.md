@@ -119,6 +119,9 @@ create TEMPORARY table `t_module_tmp` like `t_module`
 ## 常用命令
 
 ```mysql
+# 查看优化器优化后的sql
+explain extended sql语句，然后show warnings查看
+
 # 查看表的索引
 show index from tableA；
 # 查看变量
