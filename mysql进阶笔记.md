@@ -142,7 +142,10 @@ kill 302226;
 show processlist
 # 查看死锁的展示信息
 show engine innodb status
-
+# 查看mysql的最大连接数
+show variables like '%max_connections%'
+# 查看服务器响应（实际使用）的最大连接数
+show global status like 'Max_used_connections'
 
 # 创建索引  -- 此方法只能添加普通索引和唯一索引
 CREATE INDEX index_name ON table_name (column_list)
