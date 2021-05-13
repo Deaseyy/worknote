@@ -521,6 +521,25 @@ class Book(models.Model):
       dahl_objects = ZsBookManager() 
   ```
 
+## 8.其他操作
+#### 8.1 在一个app模型中使用指定的其他数据库
+```python
+class MyManager(models.Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        # if `use_db` is set on model use that for choosing the DB
+        if hasattr(self.model, 'use_db'):
+            qs = qs.using(self.model.use_db)
+        return qs
+
+
+class MPamTestHead(models.Model):
+    use_db = 'my_db'
+    objects = MyManager()
+    date = models.DateTimeField(db_column='Date', blank=True, null=True)  # F
+```
+
 ## 直接操作数据库pymysql
 
 ##### 将fetchall()返回结果改为字典形式
