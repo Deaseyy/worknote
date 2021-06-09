@@ -1,5 +1,9 @@
 vue几种页面刷新方法：<https://blog.csdn.net/baidu_39418435/article/details/81538760>
 
+加快vue前端热启动速度:
+ "babel-plugin-dynamic-import-node": "^2.3.3",   
+npm install babel-plugin-dynamic-import-node --save-dev   
+
 # 前端相关知识
 
 event.preventDefault()  ： 会阻止默认事件发生
