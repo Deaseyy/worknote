@@ -113,7 +113,9 @@ Welcome to Alibaba Cloud Elastic Compute Service !
 
 
 
+
 # VScode 远程开发配置
+使用VScode插件：`Remote Development`
 
 参考： https://zhuanlan.zhihu.com/p/95678121
 
