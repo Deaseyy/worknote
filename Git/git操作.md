@@ -186,7 +186,7 @@ git merge <分支名>
 
 如将master分支合并到当前分支 `git merge master`，有冲突表现如下：
 
-<img src="C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210710181438056.png" alt="image-20210710181438056" style="zoom:67%;" />
+![image-20210710181438056](https://user-images.githubusercontent.com/49275906/125193448-fd65dc80-e27e-11eb-93e3-179947e9d1ed.png)
 
 解释：HEAD 表示当前分支的内容，另一个就是合并的分支内容。
 
@@ -194,11 +194,13 @@ git merge <分支名>
 
 1. 可能需和同事商量后，再去手动保留或删除某些内容，解决并退出文件，查看状态：
 
-<img src="C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210710182006697.png" alt="image-20210710182006697" style="zoom:67%;" />
+![image-20210710182006697](https://user-images.githubusercontent.com/49275906/125193472-1e2e3200-e27f-11eb-8d5a-19fcecbe1236.png)
+
+
 
 2. 执行 `git add 文件名` 后，查看状态：
 
-![image-20210710182159040](C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210710182159040.png)
+![image-20210710182159040](https://user-images.githubusercontent.com/49275906/125193488-2d14e480-e27f-11eb-84cc-f4abb23a1fca.png)
 
 3. 最后执行 `git commit -m "注释"`， merging中不能带文件名。
 
@@ -279,7 +281,7 @@ git fetch origin <远程分支名>
 
 团队项目开发常用的模式
 
-<img src="C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210711183118133.png" alt="image-20210711183118133" style="zoom: 33%;" />
+![image-20210711183118133](https://user-images.githubusercontent.com/49275906/125193508-474ec280-e27f-11eb-858e-379c5521fe7b.png)
 
 
 
@@ -326,7 +328,8 @@ HASH的加密算法：
 
 哈希算法可以被用来验证文件，原理如下图：
 
-<img src="C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210710184423389.png" alt="image-20210710184423389" style="zoom: 50%;" />
+![image-20210710184423389](https://user-images.githubusercontent.com/49275906/125193524-5897cf00-e27f-11eb-9675-829a8c0689b3.png)
+
 
 Git底层采用的是 `SHA-1` 算法。就是靠这种机制从根本上保证数据完整性。
 
