@@ -24,7 +24,8 @@
 
 工作区 --> 暂存区 --> 本地库
 
-![image-20210710133126913](C:\Users\12395\AppData\Roaming\Typora\typora-user-images\image-20210710133126913.png)
+![image-20210710133126913](https://user-images.githubusercontent.com/49275906/125193353-8d575680-e27e-11eb-843c-d6550f9c90bf.png)
+
 
 ​		当 working tree  clean 时，可以理解为：三个区域都分别保存了相同的完整数据；每次工作区更新，都需要同步到暂存区和本地库，并保持一致。
 
