@@ -145,6 +145,7 @@ git diff <历史版本> <文件名> # 如 git diff HEAD~3 aa.txt
 
 - 不带文件名将比较多个文件
 ```
+我们在git pull后，可以通过git diff HEAD^ 来查看拉下来的文件有那些具体的修改。
 
 
 
